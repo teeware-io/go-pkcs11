@@ -1,3 +1,3 @@
-module github.com/miekg/pkcs11
+module github.com/teeware-io/go-pkcs11
 
 go 1.12

@@ -62,7 +62,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/miekg/pkcs11"
+	"github.com/teeware-io/go-pkcs11"
 )
 
 var modules = make(map[string]Module)
