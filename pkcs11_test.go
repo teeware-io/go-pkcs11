@@ -145,7 +145,7 @@ func TestGetAttributeValue(t *testing.T) {
 	session := getSession(p, t)
 	defer finishSession(p, session)
 
-	pbk, _ := generateRSAKeyPair(t, p, session, "GetAttributeValue", false)
+	pbk, pvk := generateRSAKeyPair(t, p, session, "GetAttributeValue", false)
 
 	template := []*Attribute{
 		NewAttribute(CKA_PUBLIC_EXPONENT, nil),
@@ -165,6 +165,33 @@ func TestGetAttributeValue(t *testing.T) {
 			t.Logf("modulus %s\n", mod.String())
 		}
 	}
+
+	t.Log("When request includes a nonexistent attribute:")
+	template = []*Attribute{
+		NewAttribute(CKA_VALUE, nil), // not returned because it's nonexistent
+		NewAttribute(CKA_LABEL, nil), // should be returned
+	}
+	attr, err = p.GetAttributeValue(session, ObjectHandle(pbk), template)
+	if err != nil {
+		t.Fatalf("err %s\n", err)
+	}
+	for i, a := range attr {
+		t.Logf("attr %d, type %d, valuelen %d", i, a.Type, len(a.Value))
+	}
+
+	t.Log("When request includes a sensitive attribute:")
+	template = []*Attribute{
+		NewAttribute(CKA_PRIVATE_EXPONENT, nil), // not returned because it's sensitive
+		NewAttribute(CKA_LABEL, nil),            // should be returned
+	}
+	attr, err = p.GetAttributeValue(session, ObjectHandle(pvk), template)
+	if err != nil {
+		t.Fatalf("err %s\n", err)
+	}
+	for i, a := range attr {
+		t.Logf("attr %d, type %d, valuelen %d", i, a.Type, len(a.Value))
+	}
+
 }
 
 func TestDigest(t *testing.T) {

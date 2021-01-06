@@ -302,7 +302,7 @@ CK_RV GetAttributeValue(struct ctx * c, CK_SESSION_HANDLE session,
 	// Call for the first time, check the returned ulValue in the attributes, then
 	// allocate enough space and try again.
 	CK_RV e = c->sym->C_GetAttributeValue(session, object, temp, templen);
-	if (e != CKR_OK) {
+	if (e != CKR_OK && e != CKR_ATTRIBUTE_TYPE_INVALID && e != CKR_ATTRIBUTE_SENSITIVE) {
 		return e;
 	}
 	CK_ULONG i;
@@ -770,9 +770,10 @@ static inline CK_VOID_PTR getAttributePval(CK_ATTRIBUTE_PTR a)
 
 */
 import "C"
-import "strings"
-
-import "unsafe"
+import (
+	"strings"
+	"unsafe"
+)
 
 // Ctx contains the current pkcs11 context.
 type Ctx struct {
@@ -1079,18 +1080,20 @@ func (c *Ctx) GetAttributeValue(sh SessionHandle, o ObjectHandle, a []*Attribute
 	}
 	e := C.GetAttributeValue(c.ctx, C.CK_SESSION_HANDLE(sh), C.CK_OBJECT_HANDLE(o), &pa[0], C.CK_ULONG(len(a)))
 	if err := toError(e); err != nil {
-		return nil, err
+		if e != C.CKR_ATTRIBUTE_TYPE_INVALID && e != C.CKR_ATTRIBUTE_SENSITIVE {
+			return nil, err
+		}
 	}
-	a1 := make([]*Attribute, len(a))
-	for i, c := range pa {
+	a1 := make([]*Attribute, 0)
+	for _, c := range pa {
 		x := new(Attribute)
 		x.Type = uint(c._type)
 		if int(c.ulValueLen) != -1 {
 			buf := unsafe.Pointer(C.getAttributePval(&c))
 			x.Value = C.GoBytes(buf, C.int(c.ulValueLen))
 			C.free(buf)
+			a1 = append(a1, x)
 		}
-		a1[i] = x
 	}
 	return a1, nil
 }
