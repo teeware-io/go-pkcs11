@@ -23,16 +23,9 @@ import (
 	"testing"
 )
 
-var (
-	module          = "/usr/lib/softhsm/libsofthsm.so"
-	tokenLabel      = "softhsm token"
-	privateKeyLabel = "my key"
-	pin             = "1234"
-)
-
 func init() {
 	if x := os.Getenv("SOFTHSM_LIB"); x != "" {
-		module = x
+		lib = x
 	}
 	if x := os.Getenv("SOFTHSM_TOKENLABEL"); x != "" {
 		tokenLabel = x
@@ -188,12 +181,12 @@ func (c *cache) sign(input []byte) ([]byte, error) {
 
 // TODO(miek): disabled for now. Fill out the correct values in hsm.db so we can use it.
 func testParallel(t *testing.T) {
-	if module == "" || tokenLabel == "" || pin == "" || privateKeyLabel == "" {
+	if lib == "" || tokenLabel == "" || pin == "" || privateKeyLabel == "" {
 		t.Fatal("Must pass all flags: module, tokenLabel, pin, and privateKeyLabel")
 		return
 	}
 
-	context, err := initPKCS11Context(module)
+	context, err := initPKCS11Context(lib)
 	if err != nil {
 		t.Fatal(err)
 	}

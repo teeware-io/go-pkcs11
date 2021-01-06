@@ -5,18 +5,19 @@ it makes sense. It has been tested with SoftHSM.
 
 ## SoftHSM
 
- *  Make it use a custom configuration file `export SOFTHSM_CONF=$PWD/softhsm.conf`
-
- *  Then use `softhsm` to init it
+ *  Then use `pkcs11-tool` to init it
 
     ~~~
-    softhsm --init-token --slot 0 --label test --pin 1234
+    export SOFTHSM2_CONF=./softhsm2.conf
+    pkcs11-tool --module /usr/local/lib/softhsm/libsofthsm2.so --init-token --label test
+    pkcs11-tool --module /usr/local/lib/softhsm/libsofthsm2.so --init-pin --login
+    pkcs11-tool --module /usr/local/lib/softhsm/libsofthsm2.so --list-slots
     ~~~
 
- *  Then use `libsofthsm.so` as the pkcs11 module:
+ *  Then use `libsofthsm2.so` as the pkcs11 module:
 
     ~~~ go
-    p := pkcs11.New("/usr/lib/softhsm/libsofthsm.so")
+    p := pkcs11.New("/usr/local/lib/softhsm/libsofthsm2.so")
     ~~~
 
 ## Examples
